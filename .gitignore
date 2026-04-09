@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno (¡MUY IMPORTANTE, nunca subir al repo!)
+.env
+**/.env
+!**/.env.example
+
+# Build del frontend
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Cache de Vite
+.vite/
+**/.vite/
