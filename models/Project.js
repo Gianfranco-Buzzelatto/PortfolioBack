@@ -7,6 +7,7 @@ const projectSchema = new mongoose.Schema({
   technologies: [{ type: String }],
   category: { type: String, enum: ['web', 'mobile', 'design', 'backend', 'fullstack', 'otro'], default: 'web' },
   imageUrl: { type: String },
+  demoUrl:  { type: String },
   liveUrl: { type: String },
   githubUrl: { type: String },
   featured: { type: Boolean, default: false },

@@ -12,6 +12,10 @@ const quoteSchema = new mongoose.Schema({
   email:       { type: String, required: true },
   projectType: { type: String, required: true },
   description: { type: String },
+  objective:   { type: String },
+  business:    { type: String },
+  presence:    { type: String },
+  source:      { type: String },
   budget:      { type: String },   // rango que indica el cliente
   whatsapp:    { type: String },
 
@@ -28,12 +32,44 @@ const quoteSchema = new mongoose.Schema({
   currency:     { type: String, default: 'USD' },
   exchangeRate: { type: Number, default: 1 },
 
-  basePrice:  { type: Number },  // suma de features sin ajustes
-  finalPrice: { type: Number },  // precio final con todos los ajustes
+  basePrice:  { type: Number },  // suma de features sin ajustes (plan media, compat)
+  finalPrice: { type: Number },  // precio final del plan destacado
+
+  plans: [{
+    key:          { type: String, enum: ['base', 'media', 'premium'] },
+    label:        { type: String },
+    features:     [featureSchema],
+    customFeatures: [featureSchema],
+    deadline:     { type: Number },
+    revisions:    { type: Number },
+    basePrice:    { type: Number },
+    finalPrice:   { type: Number },
+  }],
+  selectedPlan: { type: String, enum: ['base', 'media', 'premium'] },
+  premiumType:  { type: String, enum: ['tienda', 'sistema', 'pedidos'], default: 'tienda' },
+  projectCategory: {
+    type: String,
+    enum: ['landing', 'institucional', 'ecommerce', 'pedidos', 'sistema'],
+    default: 'landing',
+  },
+  carePlan: {
+    included: { type: Boolean, default: true },
+    tier:     { type: String, enum: ['basico', 'intermedio', 'premium'], default: 'intermedio' },
+    price:    { type: Number, default: 55 },
+    minMonths:{ type: Number, default: 3 },
+  },
+
+  aiProposal: { type: mongoose.Schema.Types.Mixed },
 
   adminNotes: { type: String },
+  clientLogo: { type: String },
 
   // ── Estado ──
+  stage: {
+    type: String,
+    enum: ['pendiente', 'activo', 'revision', 'entregado', 'mantenimiento'],
+    default: 'pendiente',
+  },
   status: {
     type: String,
     enum: ['pending', 'reviewed', 'quoted', 'sent', 'accepted', 'rejected'],
