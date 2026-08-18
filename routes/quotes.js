@@ -15,14 +15,6 @@ const publicQuoteLimiter = rateLimit({
   message: { message: 'Demasiadas consultas. Probá más tarde o escribinos por WhatsApp.' },
 });
 
-const publicAiLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: 4,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { message: 'El agente está ocupado. Probá más tarde o escribinos por WhatsApp.' },
-});
-
 const PUBLIC_FIELDS = [
   'clientName',
   'email',
@@ -76,7 +68,7 @@ function applyProposal(quoteDoc, proposal) {
   const fields = proposal.quoteFields || {};
   Object.assign(quoteDoc, fields);
   quoteDoc.aiProposal = publicProposal(proposal);
-  quoteDoc.projectType = `${proposal.planLabel} · ${proposal.categoryLabel}`;
+  if (!quoteDoc.projectName) quoteDoc.projectName = proposal.headline;
   if (typeof quoteDoc.markModified === 'function') {
     quoteDoc.markModified('aiProposal');
     quoteDoc.markModified('plans');
@@ -95,7 +87,7 @@ async function buildPublicQuoteData(body) {
   data.objective = String(data.objective || '').trim().slice(0, 80);
   data.presence = String(data.presence || '').trim().slice(0, 40);
   data.budget = String(data.budget || '').trim().slice(0, 40);
-  data.source = body.generateWithAi ? 'portfolio_ai' : 'portfolio_onboarding';
+  data.source = 'portfolio_onboarding';
   data.status = 'pending';
   data.stage = 'pendiente';
   return data;
@@ -103,75 +95,21 @@ async function buildPublicQuoteData(body) {
 
 router.post('/', publicQuoteLimiter, async (req, res) => {
   try {
-    const generateWithAi = Boolean(req.body?.generateWithAi);
     const data = await buildPublicQuoteData(req.body);
 
     if (!data.clientName || !isEmail(data.email) || !data.projectType) {
       return res.status(400).json({ message: 'Nombre, email y tipo de proyecto son requeridos' });
     }
 
-    const quote = new Quote(data);
-    let proposal = null;
-
-    if (generateWithAi) {
-      proposal = await generateQuoteProposal({
-        clientName: data.clientName,
-        business: data.business,
-        objective: data.objective,
-        presence: data.presence,
-        budget: data.budget,
-        description: data.description,
-      });
-      applyProposal(quote, proposal);
-    }
-
-    await quote.save();
+    const quote = await Quote.create(data);
     notifyNewQuote(quote).catch(() => {});
     res.status(201).json({
       _id: quote._id,
       status: quote.status,
       message: 'Consulta recibida',
-      proposal: generateWithAi ? publicProposal(proposal) : null,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
-  }
-});
-
-router.post('/ai', publicAiLimiter, async (req, res) => {
-  try {
-    const data = await buildPublicQuoteData({ ...req.body, generateWithAi: true });
-    if (!data.clientName || !isEmail(data.email)) {
-      return res.status(400).json({ message: 'Nombre y email son requeridos' });
-    }
-    if (!data.description || data.description.length < 30) {
-      return res.status(400).json({ message: 'Contame un poco más la idea (al menos un párrafo corto).' });
-    }
-    if (!data.projectType) {
-      data.projectType = 'Propuesta con agente IA';
-    }
-
-    const proposal = await generateQuoteProposal({
-      clientName: data.clientName,
-      business: data.business,
-      objective: data.objective || 'agente_ia',
-      presence: data.presence,
-      budget: data.budget,
-      description: data.description,
-    });
-
-    const quote = new Quote(data);
-    applyProposal(quote, proposal);
-    await quote.save();
-    notifyNewQuote(quote).catch(() => {});
-
-    res.status(201).json({
-      _id: quote._id,
-      status: quote.status,
-      proposal: publicProposal(proposal),
-    });
-  } catch (err) {
-    res.status(400).json({ message: err.message || 'No pude armar la propuesta ahora.' });
   }
 });
 
