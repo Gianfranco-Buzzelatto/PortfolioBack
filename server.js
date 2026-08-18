@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { connectDB } from './db/connect.js';
+import { connectDB, ensureDb } from './db/connect.js';
 import { seedProjectsIfEmpty } from './scripts/seed-projects.js';
 import { requireJwtSecret } from './middleware/auth.js';
 import projectRoutes from './routes/projects.js';
@@ -26,6 +26,10 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '2mb' }));
 
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use(ensureDb);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/quotes', quoteRoutes);
@@ -33,11 +37,13 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/clients', clientsRouter);
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-
 const PORT = process.env.PORT || 5000;
 
-await connectDB();
-await seedProjectsIfEmpty();
+try {
+  await connectDB();
+  await seedProjectsIfEmpty();
+} catch (err) {
+  console.error('Arranque sin Mongo (se conecta en el primer request):', err.message);
+}
 
 app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
