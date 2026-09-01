@@ -5,9 +5,15 @@ import { connectDB } from '../db/connect.js';
 
 dotenv.config();
 
-const email = process.argv[2] || 'gianbuzzelatto@gmail.com';
-const password = process.argv[3] || 'AdminPortfolio2026!';
-const username = process.argv[4] || 'admin';
+const email = process.argv[2] || process.env.ADMIN_EMAIL;
+const password = process.argv[3] || process.env.ADMIN_PASSWORD;
+const username = process.argv[4] || process.env.ADMIN_USERNAME || 'admin';
+
+if (!email || !password || password.length < 12) {
+  console.error('Uso: npm run reset-admin -- <email> <password de 12+ caracteres> [username]');
+  console.error('También podés usar ADMIN_EMAIL / ADMIN_PASSWORD en el entorno.');
+  process.exit(1);
+}
 
 await connectDB();
 

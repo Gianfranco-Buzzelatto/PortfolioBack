@@ -20,7 +20,10 @@ requireJwtSecret();
 const app = express();
 app.set('trust proxy', 1);
 
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  strictTransportSecurity: { maxAge: 63072000, includeSubDomains: true, preload: true },
+}));
 
 const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5174').replace(/\/$/, '')
 const corsOrigins = new Set([
