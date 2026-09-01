@@ -14,6 +14,7 @@ const PREMIUM_TYPE = {
   institucional: 'tienda',
   ecommerce: 'tienda',
   pedidos: 'pedidos',
+  turnero: 'sistema',
   sistema: 'sistema',
 }
 
@@ -52,7 +53,10 @@ function detectCategory(brief = {}) {
 
   if (objective === 'pedidos_delivery') return 'pedidos'
   if (objective === 'vender_online') return foodOp ? 'pedidos' : 'ecommerce'
-  if (objective === 'procesos_internos' || /sistema|erp|inventario|turnos|excel|interno/.test(text)) {
+  if (objective === 'agendar_turnos' || /turno|agenda|cita|peluquer|est[eé]tica|consultorio|veterinar/.test(text)) {
+    return 'turnero'
+  }
+  if (objective === 'procesos_internos' || /sistema|erp|inventario|excel|interno/.test(text)) {
     return 'sistema'
   }
   if (objective === 'mostrar_contacto' || /landing|una p[aá]gina|solo whatsapp/.test(text)) {
@@ -70,9 +74,10 @@ function detectPlan(brief = {}, category) {
   const budget = brief.budget || ''
   if (budget === 'hasta_500') return category === 'landing' ? 'base' : 'base'
   if (budget === '2500_plus') return 'premium'
-  if (budget === '500_1000' && category === 'landing') return 'premium'
+  if (budget === '500_1000' && (category === 'landing' || category === 'turnero')) return 'premium'
   if (['ecommerce', 'pedidos', 'sistema'].includes(category) && budget === 'hasta_500') return 'base'
   if (category === 'sistema' || category === 'pedidos') return 'media'
+  if (category === 'turnero') return 'media'
   return 'media'
 }
 
@@ -81,7 +86,7 @@ function heuristicDraft(brief = {}) {
   const recommendedPlan = detectPlan(brief, projectCategory)
   const cat = getCategory(projectCategory)
   const biz = clip(brief.business, 80) || 'tu negocio'
-  const carePlan = ['ecommerce', 'pedidos', 'sistema'].includes(projectCategory) ? 'intermedio' : 'basico'
+  const carePlan = ['ecommerce', 'pedidos', 'sistema', 'turnero'].includes(projectCategory) ? 'intermedio' : 'basico'
 
   const considerations = {
     landing: [
@@ -107,6 +112,12 @@ function heuristicDraft(brief = {}) {
       'Horarios, zonas de entrega y tiempo estimado de preparación.',
       'Cuenta de Mercado Pago si cobrás online.',
       'Quién mira el panel en el turno (cocina / mostrador).',
+    ],
+    turnero: [
+      'Servicios con duración (corte, consulta, clase, etc.).',
+      'Horarios de atención y si hay más de un profesional.',
+      'WhatsApp o email para confirmaciones.',
+      'Qué días no se atiende (feriados, vacaciones).',
     ],
     sistema: [
       'Mapear el proceso actual (aunque sea en Excel o WhatsApp).',
@@ -272,7 +283,7 @@ ${clip(brief.description, 4000) || '(sin detalle)'}
 
 Devolvé JSON con exactamente estas claves:
 {
-  "projectCategory": "landing|institucional|ecommerce|pedidos|sistema",
+  "projectCategory": "landing|institucional|ecommerce|pedidos|turnero|sistema",
   "recommendedPlan": "base|media|premium",
   "carePlan": "basico|intermedio|premium",
   "addons": [{"name": "nombre exacto del catálogo", "reason": "por qué"}],

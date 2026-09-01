@@ -181,10 +181,52 @@ export const PROJECT_CATEGORIES = {
       },
     },
   },
+  turnero: {
+    key: 'turnero',
+    label: 'Turnero online',
+    fitFor: 'Que el cliente reserve día y horario solo, y vos veas la agenda ordenada (peluquería, consultorio, taller, estética y rubros similares).',
+    notFor: 'No es un sistema interno de stock o ventas, ni una tienda. Si el problema es Excel o comandas, mirá Sistema a medida o Pedidos.',
+    tiers: {
+      base: {
+        price: 420,
+        priceRange: [380, 460],
+        deadline: 12,
+        revisions: 2,
+        includes: [
+          'Agenda online para 1 profesional o 1 agenda',
+          'El cliente reserva desde el celular',
+          'Horarios y duración que vos definís',
+          'Confirmación simple al reservar',
+        ],
+      },
+      media: {
+        price: 580,
+        priceRange: [520, 650],
+        deadline: 18,
+        revisions: 3,
+        includes: [
+          'Todo lo Básico',
+          'Varios servicios o 2–3 profesionales',
+          'Bloqueos, feriados y horarios distintos por día',
+        ],
+      },
+      premium: {
+        price: 850,
+        priceRange: [750, 980],
+        deadline: 25,
+        revisions: 4,
+        includes: [
+          'Todo lo Intermedio',
+          'Recordatorio por WhatsApp o email',
+          'Panel más completo (lista del día, cancelaciones, notas)',
+        ],
+      },
+    },
+  },
   sistema: {
     key: 'sistema',
     label: 'Sistema a Medida / Mini-ERP',
-    fitFor: 'Procesos internos específicos (inventario, ventas, turnos, reportes) que no entran en un e-commerce ni un sitio institucional.',
+    fitFor: 'Procesos internos específicos (inventario, ventas, reportes) que no entran en un e-commerce, un turnero ni un sitio institucional.',
     notFor: 'No es para vos si solo querés vender o mostrar el negocio — eso es más simple y barato con las categorías anteriores.',
     tiers: {
       base: {

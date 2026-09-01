@@ -11,6 +11,7 @@ import quoteRoutes from './routes/quotes.js';
 import settingsRoutes from './routes/settings.js';
 import uploadRoutes from './routes/upload.js';
 import clientsRouter from './routes/clients.js';
+import portalRoutes from './routes/portal.js';
 
 dotenv.config();
 
@@ -20,8 +21,21 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
+const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5174').replace(/\/$/, '')
+const corsOrigins = new Set([
+  frontendUrl,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+])
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin(origin, callback) {
+    // Same-origin / server-to-server requests have no Origin header.
+    if (!origin || corsOrigins.has(origin)) return callback(null, true)
+    return callback(null, false)
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '2mb' }));
@@ -36,6 +50,7 @@ app.use('/api/quotes', quoteRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/clients', clientsRouter);
+app.use('/api/portal', portalRoutes);
 
 const PORT = process.env.PORT || 5000;
 

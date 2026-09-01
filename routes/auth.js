@@ -68,4 +68,51 @@ router.post('/setup', setupLimiter, async (req, res) => {
   }
 });
 
+router.get('/admins', protect, async (req, res) => {
+  try {
+    const admins = await User.find()
+      .select('username email createdAt')
+      .sort({ createdAt: 1 })
+      .lean();
+    res.json(admins.map((u) => ({
+      id: u._id,
+      username: u.username,
+      email: u.email,
+      createdAt: u.createdAt,
+    })));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.post('/admins', protect, async (req, res) => {
+  try {
+    const username = String(req.body.username || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
+    if (!username || !email || password.length < 8) {
+      return res.status(400).json({ message: 'Usuario, email y contraseña (mín. 8 caracteres) son requeridos' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'Email inválido' });
+    }
+    const exists = await User.findOne({ $or: [{ email }, { username }] });
+    if (exists) {
+      return res.status(400).json({
+        message: exists.email === email ? 'Ya existe un admin con ese email' : 'Ya existe un admin con ese usuario',
+      });
+    }
+    const user = await User.create({ username, email, password });
+    res.status(201).json({
+      message: 'Administrador creado',
+      user: { id: user._id, username: user.username, email: user.email, createdAt: user.createdAt },
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'Usuario o email ya registrado' });
+    }
+    res.status(500).json({ message: err.message });
+  }
+});
+
 export default router;

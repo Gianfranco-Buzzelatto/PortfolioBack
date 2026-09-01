@@ -2,43 +2,60 @@ import Project from '../models/Project.js';
 
 const SEED_PROJECTS = [
   {
-    title: 'Sistema de gestión gastronómica',
+    title: 'Sistema de gestión para hamburguesería',
+    slug: 'gestion-gastronomia',
     description:
-      'El local manejaba pedidos y cuentas con herramientas dispersas y mucho margen de error. Centralicé mesas, pedidos y flujo de caja en un sistema a medida para que el equipo trabaje más rápido y con números claros.',
+      'El local operaba mesas, comandas y comunicación con el cliente en herramientas dispersas. Armé un sistema a medida con panel en tiempo real, reportes y aviso por WhatsApp para ordenar el salón y la cocina.',
     longDescription:
-      'Panel unificado para salón y cocina: estado de mesas en tiempo real, comandas digitales, cierre de cuenta y reporte diario de ventas.',
+      'Panel unificado: mesas, comandas, cierre de caja, reportes y notificaciones. Pensado para que el equipo deje de depender de planillas y chats sueltos.',
     category: 'fullstack',
-    technologies: ['React', 'Node.js', 'Express', 'MongoDB'],
-    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    technologies: ['React', 'Vite', 'Node.js', 'Express', 'MongoDB', 'Socket.io', 'Cloudinary', 'WhatsApp'],
+    imageUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&q=80',
     demoUrl: '/demo/gastronomia',
     featured: true,
     order: 1,
   },
   {
     title: 'Tienda online para perfumería',
+    slug: 'tienda-perfumeria',
     description:
-      'La marca necesitaba vender 24/7 con una vitrina ordenada y una compra simple en celular. Desarrollé un e-commerce enfocado en catálogo, confianza y checkout claro para aumentar conversiones sin fricción.',
+      'La marca necesitaba vender 24/7 con catálogo claro y compra simple desde el celular. Desarrollé un e-commerce con carrito, panel admin y experiencia pensada para conversión en mobile.',
     longDescription:
-      'Catálogo por familias olfativas, fichas de producto con variantes, carrito persistente y checkout optimizado para mobile.',
+      'Catálogo por familias, fichas de producto, carrito, checkout y administración de stock/productos.',
     category: 'web',
-    technologies: ['React', 'Node.js', 'MongoDB', 'E-commerce'],
+    technologies: ['React', 'Vite', 'Tailwind', 'Zustand', 'React Query', 'Node.js', 'Express', 'MongoDB', 'Cloudinary', 'Socket.io'],
     imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&q=80',
     demoUrl: '/demo/perfumeria',
     featured: true,
     order: 2,
   },
   {
-    title: 'Web institucional para metalúrgica',
+    title: 'E-commerce y CRM para marca de velas',
+    slug: 'ecommerce-velas',
     description:
-      'La empresa requería transmitir solidez y servicios industriales a nuevos clientes B2B. Entregué un sitio institucional rápido, con propuesta de valor explícita y contacto directo al área comercial.',
+      'La marca necesitaba vitrina online y orden interno (pedidos, clientes, catálogo). Entregué una plataforma con tienda + panel para operar el negocio sin perder el control del stock y las ventas.',
     longDescription:
-      'Sitio corporativo con líneas de servicio, casos industriales, certificaciones y formulario de consulta comercial.',
-    category: 'web',
-    technologies: ['React', 'Responsive', 'Performance', 'Formularios de contacto'],
-    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80',
-    demoUrl: '/demo/metalurgica',
+      'Catálogo, carrito, gestión de pedidos y clientes, y generación de documentos.',
+    category: 'fullstack',
+    technologies: ['React', 'Vite', 'Tailwind', 'Node.js', 'Express', 'MongoDB', 'Cloudinary', 'PDF'],
+    imageUrl: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800&q=80',
+    demoUrl: '/demo/velas',
     featured: true,
     order: 3,
+  },
+  {
+    title: 'Plataforma de pedidos para hamburguesería',
+    slug: 'pedidos-hamburgueseria',
+    description:
+      'El negocio necesitaba tomar pedidos online con seguimiento en vivo y panel operativo. Armé una plataforma PWA con carrito, tiempo real y métricas para cocina y mostrador.',
+    longDescription:
+      'Pedidos online, estados en tiempo real, panel con métricas y experiencia mobile-first instalable como app.',
+    category: 'fullstack',
+    technologies: ['React', 'Vite', 'Tailwind', 'Zustand', 'React Query', 'PWA', 'Node.js', 'Express', 'MongoDB', 'Socket.io', 'Cloudinary'],
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80',
+    demoUrl: '/demo/gastronomia',
+    featured: true,
+    order: 4,
   },
 ];
 
@@ -48,3 +65,11 @@ export async function seedProjectsIfEmpty() {
   await Project.insertMany(SEED_PROJECTS);
   console.log('📦 Proyectos demo cargados en la base de datos');
 }
+
+export async function replaceShowcaseProjects() {
+  await Project.deleteMany({});
+  await Project.insertMany(SEED_PROJECTS);
+  console.log('📦 Proyectos del portfolio reemplazados:', SEED_PROJECTS.length);
+}
+
+export { SEED_PROJECTS };

@@ -18,6 +18,13 @@ function transporter() {
 
 export async function notifyNewQuote(quote) {
   const to = process.env.NOTIFY_EMAIL || process.env.SMTP_USER;
+  const features = Array.isArray(quote.requestedFeatures) && quote.requestedFeatures.length
+    ? quote.requestedFeatures.join(', ')
+    : '—';
+  const infra = quote.infra
+    ? Object.entries(quote.infra).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(' · ')
+    : '';
+
   const lines = [
     `Nueva consulta desde el portfolio`,
     ``,
@@ -26,11 +33,19 @@ export async function notifyNewQuote(quote) {
     `WhatsApp: ${quote.whatsapp || '—'}`,
     `Objetivo: ${quote.projectType}`,
     `Negocio: ${quote.business || '—'}`,
+    `Problema / necesidad: ${quote.need || '—'}`,
+    `Público: ${quote.audience || '—'}`,
+    `Servicios/productos: ${quote.servicesProducts || '—'}`,
+    `Funcionalidades: ${features}`,
     `Presupuesto: ${quote.budget || 'no definido'}`,
+    `Score: ${quote.leadScore || '—'} · Acción: ${quote.suggestedAction || '—'}`,
+    `Fecha ideal: ${quote.launchDate || '—'}`,
     `Presencia: ${quote.presence || '—'}`,
+    infra ? `Infra: ${infra}` : null,
+    quote.references ? `Referencias: ${quote.references}` : null,
     ``,
     quote.description || '(sin detalle)',
-  ];
+  ].filter((line) => line !== null);
 
   if (quote.aiProposal?.headline) {
     lines.push('', 'Propuesta del agente:', quote.aiProposal.headline);

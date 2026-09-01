@@ -7,7 +7,7 @@ const featureSchema = new mongoose.Schema({
 }, { _id: false });
 
 const quoteSchema = new mongoose.Schema({
-  // ── Datos del cliente (form público) ──
+  // ── Datos del cliente (form público / brief) ──
   clientName:  { type: String, required: true },
   email:       { type: String, required: true },
   projectType: { type: String, required: true },
@@ -16,8 +16,105 @@ const quoteSchema = new mongoose.Schema({
   business:    { type: String },
   presence:    { type: String },
   source:      { type: String },
-  budget:      { type: String },   // rango que indica el cliente
+  budget:      { type: String },
   whatsapp:    { type: String },
+  need:        { type: String },
+  audience:    { type: String },
+  servicesProducts: { type: String },
+  requestedFeatures: [{ type: String }],
+  infra: {
+    domain:  { type: String, default: '' },
+    hosting: { type: String, default: '' },
+    brand:   { type: String, default: '' },
+    content: { type: String, default: '' },
+    photos:  { type: String, default: '' },
+    social:  { type: String, default: '' },
+  },
+  needs: {
+    seo:          { type: String, default: '' },
+    pwa:          { type: String, default: '' },
+    multilang:    { type: String, default: '' },
+    integrations: { type: String, default: '' },
+  },
+  successMetric: { type: String },
+  outOfScope:    { type: String },
+  launchDate:  { type: String },
+  references:  { type: String },
+
+  // ── Calificación / discovery ──
+  leadScore: {
+    type: String,
+    enum: ['green', 'yellow', 'red'],
+    default: 'yellow',
+  },
+  leadScoreReasons: [{ type: String }],
+  suggestedAction: {
+    type: String,
+    enum: ['contactar', 'agendar', 'pedir_info', 'archivar'],
+    default: 'pedir_info',
+  },
+  discovery: {
+    scheduledAt: { type: String, default: '' },
+    notes:       { type: String, default: '' },
+    done:        { type: Boolean, default: false },
+  },
+
+  // ── Aceptación pública ──
+  acceptToken: { type: String },
+  acceptTokenCreatedAt: { type: Date },
+  acceptance: {
+    acceptedAt:   { type: Date },
+    clientName:   { type: String },
+    email:        { type: String },
+    selectedPlan: { type: String },
+    ip:           { type: String },
+    userAgent:    { type: String },
+  },
+
+  contract: {
+    version:    { type: String },
+    acceptedAt: { type: Date },
+    clientName: { type: String },
+    email:      { type: String },
+    ip:         { type: String },
+    userAgent:  { type: String },
+  },
+
+  onboarding: {
+    submittedAt: { type: Date },
+    brand: {
+      hasLogo:   { type: String, default: '' },
+      hasColors: { type: String, default: '' },
+      hasFonts:  { type: String, default: '' },
+      assetLinks:{ type: String, default: '' },
+      notes:     { type: String, default: '' },
+    },
+    content: {
+      hasTexts:  { type: String, default: '' },
+      hasPhotos: { type: String, default: '' },
+      hasVideos: { type: String, default: '' },
+      notes:     { type: String, default: '' },
+    },
+    infra: {
+      domain:         { type: String, default: '' },
+      hosting:        { type: String, default: '' },
+      emailProvider:  { type: String, default: '' },
+      paymentAccount: { type: String, default: '' },
+      notes:          { type: String, default: '' },
+    },
+    accessesNotes: { type: String, default: '' },
+    references:    { type: String, default: '' },
+    extra:         { type: String, default: '' },
+    approver: {
+      name: { type: String, default: '' },
+      role: { type: String, default: '' },
+    },
+    billing: {
+      businessName: { type: String, default: '' },
+      taxId:        { type: String, default: '' },
+      email:        { type: String, default: '' },
+    },
+  },
 
   // ── Datos del wizard (admin) ──
   projectName:    { type: String },
@@ -49,7 +146,7 @@ const quoteSchema = new mongoose.Schema({
   premiumType:  { type: String, enum: ['tienda', 'sistema', 'pedidos'], default: 'tienda' },
   projectCategory: {
     type: String,
-    enum: ['landing', 'institucional', 'ecommerce', 'pedidos', 'sistema'],
+    enum: ['landing', 'institucional', 'ecommerce', 'pedidos', 'turnero', 'sistema'],
     default: 'landing',
   },
   carePlan: {
@@ -60,6 +157,9 @@ const quoteSchema = new mongoose.Schema({
   },
 
   aiProposal: { type: mongoose.Schema.Types.Mixed },
+
+  /** Texto editable de la propuesta (recomendación + FAQs) para PDF / WhatsApp */
+  proposalCopy: { type: mongoose.Schema.Types.Mixed },
 
   adminNotes: { type: String },
   clientLogo: { type: String },
