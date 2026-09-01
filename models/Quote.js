@@ -9,7 +9,9 @@ const featureSchema = new mongoose.Schema({
 const quoteSchema = new mongoose.Schema({
   // ── Datos del cliente (form público / brief) ──
   clientName:  { type: String, required: true },
-  email:       { type: String, required: true },
+  // El formulario público sigue exigiendo email; las cargadas a mano desde el
+  // admin pueden arrancar solo con WhatsApp y completarlo después.
+  email:       { type: String },
   projectType: { type: String, required: true },
   description: { type: String },
   objective:   { type: String },

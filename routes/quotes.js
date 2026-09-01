@@ -57,6 +57,16 @@ const FEATURE_ALLOW = new Set([
   'emails', 'catalogo', 'analytics',
 ])
 
+/** Canales por los que puede entrar una cotización cargada a mano. */
+const MANUAL_SOURCES = new Set([
+  'admin_whatsapp',
+  'admin_instagram',
+  'admin_llamada',
+  'admin_email',
+  'admin_referido',
+  'admin_otro',
+])
+
 const INFRA_ALLOW = new Set(['si', 'no', 'parcial', 'ns', ''])
 const INFRA_KEYS = ['domain', 'hosting', 'brand', 'content', 'photos', 'social']
 const NEED_KEYS = ['seo', 'pwa', 'multilang', 'integrations']
@@ -208,7 +218,8 @@ function techFicheFromOnboarding(onboarding = {}) {
   }
 }
 
-async function buildPublicQuoteData(body) {
+/** Limpieza del brief, compartida por el alta pública y la manual del admin. */
+function buildBriefData(body) {
   const data = pick(body, PUBLIC_FIELDS)
   data.clientName = String(data.clientName || '').trim().slice(0, 120)
   data.email = String(data.email || '').trim().toLowerCase().slice(0, 160)
@@ -241,13 +252,16 @@ async function buildPublicQuoteData(body) {
   })
   data.successMetric = String(body.successMetric || '').trim().slice(0, 400)
   data.outOfScope = String(body.outOfScope || '').trim().slice(0, 800)
-  data.source = 'portfolio_onboarding'
   data.status = 'pending'
   data.stage = 'pendiente'
 
-  const scored = scoreLead(data)
-  Object.assign(data, scored)
+  return data
+}
 
+async function buildPublicQuoteData(body) {
+  const data = buildBriefData(body)
+  data.source = 'portfolio_onboarding'
+  Object.assign(data, scoreLead(data))
   return data
 }
 
@@ -267,6 +281,42 @@ router.post('/', publicQuoteLimiter, async (req, res) => {
       leadScore: quote.leadScore,
       message: 'Consulta recibida',
     })
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+})
+
+/**
+ * Alta manual desde el admin (cliente que escribe por WhatsApp, llamada, etc.).
+ * Va aparte del alta pública porque ésta tiene rate limit por IP —cargar varios
+ * clientes seguidos te bloquearía— y porque fuerza source 'portfolio_onboarding',
+ * que haría indistinguibles los leads espontáneos de los cargados a mano.
+ */
+router.post('/manual', protect, async (req, res) => {
+  try {
+    const data = buildBriefData(req.body)
+
+    if (!data.clientName) {
+      return res.status(400).json({ message: 'Falta el nombre del cliente' })
+    }
+    if (!data.projectType) {
+      return res.status(400).json({ message: 'Falta el tipo de proyecto' })
+    }
+    if (data.email && !isEmail(data.email)) {
+      return res.status(400).json({ message: 'El email no es válido' })
+    }
+    // El email puede completarse después, pero sin alguna vía de contacto la
+    // cotización no sirve para nada.
+    if (!data.email && !data.whatsapp) {
+      return res.status(400).json({ message: 'Cargá al menos un WhatsApp o un email' })
+    }
+
+    const source = String(req.body.source || '').trim()
+    data.source = MANUAL_SOURCES.has(source) ? source : 'admin_whatsapp'
+    Object.assign(data, scoreLead(data))
+
+    const quote = await Quote.create(data)
+    res.status(201).json(quote)
   } catch (err) {
     res.status(400).json({ message: err.message })
   }
@@ -472,6 +522,11 @@ router.post('/:id/share-link', protect, async (req, res) => {
     if (!quote) return res.status(404).json({ message: 'No encontrada' })
     if (!quote.plans?.length && !quote.finalPrice) {
       return res.status(400).json({ message: 'Primero cotizá y guardá un precio' })
+    }
+    // Las cargadas a mano pueden no tener email; acá ya hace falta para poder
+    // dar seguimiento formal a la propuesta.
+    if (!isEmail(quote.email)) {
+      return res.status(400).json({ message: 'Cargá el email del cliente antes de generar el link' })
     }
 
     ensureAcceptToken(quote)

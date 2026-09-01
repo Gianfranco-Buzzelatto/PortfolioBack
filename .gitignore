@@ -22,6 +22,7 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.cursor/
 
 # Cache de Vite
 .vite/
