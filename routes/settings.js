@@ -15,6 +15,11 @@ const FALLBACK = {
   github: 'https://github.com/Gianfranco-Buzzelatto',
   linkedin: 'https://www.linkedin.com/in/gianfranco-joel-buzzelatto-a0827a163/',
   skills: ['React', 'Node.js', 'Express', 'MongoDB', 'APIs REST', 'E-commerce', 'Responsive'],
+  maintenance: {
+    enabled: false,
+    title: 'Estamos en mantenimiento',
+    message: 'Estamos haciendo mejoras en el sitio. Volvé en un rato o escribinos por WhatsApp.',
+  },
 };
 
 router.get('/', async (req, res) => {
@@ -33,6 +38,15 @@ router.put('/', protect, async (req, res) => {
     allowed.forEach((key) => {
       if (req.body[key] !== undefined) data[key] = req.body[key];
     });
+
+    if (req.body.maintenance !== undefined) {
+      const m = req.body.maintenance || {};
+      data.maintenance = {
+        enabled: Boolean(m.enabled),
+        title: String(m.title || '').trim().slice(0, 120) || FALLBACK.maintenance.title,
+        message: String(m.message || '').trim().slice(0, 600) || FALLBACK.maintenance.message,
+      };
+    }
     const settings = await Settings.findOneAndUpdate({}, data, { new: true, upsert: true });
     res.json(settings);
   } catch (err) {
